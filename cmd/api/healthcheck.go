@@ -7,6 +7,9 @@ import (
 
 //regular go structure for dependencies
 func (a * application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
+
+	panic("Apples & Oranges")   // deliberate panic
+	
 	// Create a map to hold the response data
 	data := envelope {
 		"status": "available",
