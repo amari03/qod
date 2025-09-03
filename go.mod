@@ -1,7 +1,7 @@
 module github.com/amari03/qod
 
-go 1.23.5
+go 1.25.0
 
 require github.com/julienschmidt/httprouter v1.3.0
 
-require github.com/lib/pq v1.10.9 // indirect
+require github.com/lib/pq v1.10.9
