@@ -5,7 +5,9 @@ import (
   "fmt"
   "net/http"
   // import the data package which contains the definition for Comment
-  //"github.com/amari03/qod/internal/data"
+  "github.com/amari03/qod/internal/data"
+  "github.com/amari03/qod/internal/validator"
+
 )
 
 func (a *application)createCommentHandler(w http.ResponseWriter,r *http.Request) { 
@@ -22,6 +24,21 @@ if err != nil {
 	a.badRequestResponse(w, r, err)
 	return
 }
+
+// Copy into a domain model (what your notes ask for)
+comment := &data.Comment{
+  Content: incomingData.Content,
+  Author:  incomingData.Author,
+}
+// Initialize a Validator instance
+v := validator.New()
+// Do the validation
+data.ValidateComment(v, comment)
+if !v.IsEmpty() {
+    a.failedValidationResponse(w, r, v.Errors)  // implemented later
+    return
+}
+
 
 // for now display the result
 fmt.Fprintf(w, "%+v\n", incomingData)
