@@ -6,9 +6,9 @@ import (
 	"context"
     "database/sql"
 	"flag"
-	"fmt"
     "log/slog"
     "os"
+	"time"
 	_ "github.com/lib/pq"
 )
 
@@ -32,7 +32,7 @@ func main() {
 	cfg := loadConfig()
 
 	// Create logger (text to stdout)
-	logger := setupLogger(cfg.env)
+	logger := setupLogger(cfg)
 
 	// Wire dependencies
 	app := &application{
@@ -54,7 +54,7 @@ func loadConfig() configuration {
 flag.IntVar(&cfg.port, "port", 4000, "API server port")
 flag.StringVar(&cfg.env,"env","development","Environment(development|staging|production)")
 // read in the dsn
-    flag.StringVar(&settings.db.dsn, "db-dsn", "postgres://comments:fishsticks@localhost/comments","PostgreSQL DSN")
+flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://comments:fishsticks@localhost/comments","PostgreSQL DSN")
 
 flag.Parse()
 	
@@ -62,12 +62,12 @@ return cfg
 }
 
 // setupLogger configures the application logger based on environment
-func setupLogger(env string) *slog.Logger {
+func setupLogger(cfg configuration) *slog.Logger {
 	var logger *slog.Logger
 	
 	logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
 	// the call to openDB() sets up our connection pool
-	db, err := openDB(settings)
+	db, err := openDB(cfg.db.dsn)
 	if err != nil {
     	logger.Error(err.Error())
     	os.Exit(1)
@@ -80,9 +80,9 @@ func setupLogger(env string) *slog.Logger {
 	return logger
 }
 
-func openDB(settings serverConfig) (*sql.DB, error) {
+func openDB(dsn string) (*sql.DB, error) {
     // open a connection pool
-    db, err := sql.Open("postgres", settings.db.dsn)
+    db, err := sql.Open("postgres", dsn)
     if err != nil {
         return nil, err
     }
