@@ -76,12 +76,12 @@ func loadConfig() configuration {
 
 // setupLogger configures the application logger based on environment
 func setupLogger(cfg configuration) *slog.Logger {
-	var logger *slog.Logger
+	//var logger *slog.Logger
 
-	logger = slog.New(slog.NewTextHandler(os.Stdout, nil))
-	// the call to openDB() sets up our connection pool
-
-	return logger
+	if cfg.env == "production" {
+        return slog.New(slog.NewJSONHandler(os.Stdout, nil))
+    }
+    return slog.New(slog.NewTextHandler(os.Stdout, nil))
 }
 
 func openDB(dsn string) (*sql.DB, error) {
