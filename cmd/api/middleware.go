@@ -32,13 +32,30 @@ func (a *application)recoverPanic(next http.Handler)http.Handler  {
 func (a *application) enableCORS (next http.Handler) http.Handler {                             
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
          w.Header().Add("Vary", "Origin")
+         // The request method can vary so don't rely on cache
+         w.Header().Add("Vary", "Access-Control-Request-Method")
         // Let's check the request origin to see if it's in the trusted list
         origin := r.Header.Get("Origin")
         // Once we have a origin from the request header we need need to check
  if origin != "" {
     for i := range a.config.cors.trustedOrigins {
         if origin == a.config.cors.trustedOrigins[i] {
-           w.Header().Set("Access-Control-Allow-Origin", origin)                                          
+           w.Header().Set("Access-Control-Allow-Origin", origin)
+           // check if it is a Preflight CORS request
+           if r.Method == http.MethodOptions && 
+           r.Header.Get("Access-Control-Request-Method") != "" {
+            w.Header().Set("Access-Control-Allow-Methods",
+                             "OPTIONS, PUT, PATCH, DELETE")
+            w.Header().Set("Access-Control-Allow-Headers",
+                             "Authorization, Content-Type")
+            // we need to send a 200 OK status. Also since there
+            // is no need to continue the middleware chain we
+            // we leave  - remember it is not a real 'comments' request but
+            // only a preflight CORS request 
+            w.WriteHeader(http.StatusOK)
+              return
+          }
+                             
            break
         }
    }
