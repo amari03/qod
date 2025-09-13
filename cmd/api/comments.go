@@ -190,7 +190,27 @@ a.serverErrorResponse(w, r, err)
 }
 
 func (a *application)listCommentsHandler(w http.ResponseWriter,r *http.Request) {
-  comments, err := a.commentModel.GetAll()
+  // Create a struct to hold the query parameters
+  // Later on we will add fields for pagination and sorting (filters)
+    var queryParametersData struct {
+        Content string
+        Author  string
+    }
+  // get the query parameters from the URL
+   queryParameters := r.URL.Query()
+
+    // Load the query parameters into our struct
+    queryParametersData.Content = a.getSingleQueryParameter(
+      queryParameters,
+      "content",
+      "")      
+
+  queryParametersData.Author = a.getSingleQueryParameter(
+      queryParameters,
+      "author",
+      "") 
+
+  comments, err := a.commentModel.GetAll(queryParametersData.Content, queryParametersData.Author)
 if err != nil {
     a.serverErrorResponse(w, r, err)
     return
