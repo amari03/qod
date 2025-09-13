@@ -13,6 +13,7 @@ func (a *application) routes() http.Handler {
 	router.NotFound = http.HandlerFunc(a.notFoundResponse)
    // handle 405
 	router.MethodNotAllowed = http.HandlerFunc(a.methodNotAllowedResponse)
+
 	// setup routes
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", a.healthcheckHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/comments", a.createCommentHandler)
@@ -22,6 +23,8 @@ func (a *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet,"/v1/comments", a.listCommentsHandler)
 
 
-	return a.recoverPanic(router) 
+	// Set the CORs middleware early in the middleware chain to enable our
+	// response to be accepted by the client's browser
+	return a.recoverPanic(a.enableCORS(a.rateLimit(a.authenticate(router))))
 
 }
