@@ -3,6 +3,7 @@ package data
 
 import (
     "github.com/amari03/qod/internal/validator"
+    "strings"
 )
 
 // The Filters type will contain the fields related to pagination
@@ -10,6 +11,8 @@ import (
 type Filters struct {
     Page   int         // which page number does the client want
     PageSize  int      // how records per page
+    Sort string
+    SortSafeList  []string     // allowed sort fields
 }
 
 // define a type to hold the metadata
@@ -28,6 +31,10 @@ func ValidateFilters(v *validator.Validator, f Filters) {
 	v.Check(f.Page <= 500, "page", "must be a maximum of 500")
 	v.Check(f.PageSize > 0, "page_size", "must be greater than zero")
 	v.Check(f.PageSize <= 100, "page_size", "must be a maximum of 100")
+    // Check if sort fields provided are valid
+    // We will implement PermittedValue() later
+   v.Check(validator.PermittedValue(f.Sort, f.SortSafeList ...), "sort","invalid sort value")
+
  }
  
  // calculate how many records to send back
@@ -56,4 +63,24 @@ func calculateMetaData(totalRecords int, currentPage int, pageSize int) Metadata
         TotalRecords: totalRecords,
    }
     
+}
+
+// Implement the sorting feature
+func (f Filters) sortColumn() string {
+    for _, safeValue := range f.SortSafeList {
+        if f.Sort == safeValue {
+            return strings.TrimPrefix(f.Sort, "-")
+        }
+    }
+   // don't allow the operation to continue
+   // if case of SQL injection attack
+   panic("unsafe sort parameter: " + f.Sort)
+}
+
+// Get the sort order
+func (f Filters) sortDirection() string {
+    if strings.HasPrefix(f.Sort, "-") {
+        return "DESC"
+    }
+    return "ASC"
 }

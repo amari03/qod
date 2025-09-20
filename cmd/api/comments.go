@@ -217,6 +217,10 @@ func (a *application)listCommentsHandler(w http.ResponseWriter,r *http.Request) 
     queryParameters, "page", 1, v)
   queryParametersData.Filters.PageSize = a.getSingleIntegerParameter(
     queryParameters, "page_size", 10, v)
+    queryParametersData.Filters.Sort = a.getSingleQueryParameter(
+      queryParameters, "sort", "id")
+  queryParametersData.Filters.SortSafeList = []string {"id", "author", "-id", "-author"}
+
 
 // Check if our filters are valid
 data.ValidateFilters(v, queryParametersData.Filters)
